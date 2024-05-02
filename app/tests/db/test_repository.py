@@ -21,4 +21,4 @@ def test_get_user_by_username(session):
     existing_user = get_user_by_username(username,session)
 
     assert existing_user is not None
-    assert existing_user.username == username
+    assert existing_user['username'] == username

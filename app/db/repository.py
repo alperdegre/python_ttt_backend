@@ -1,6 +1,7 @@
 import datetime 
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from types import SimpleNamespace
 
 from app.db.db import User
 
@@ -24,4 +25,4 @@ def get_user_by_username(user_name:str, db:Session):
     if db_user is None:
         return None
     else:
-        return db_user
+        return db_user.__dict__
