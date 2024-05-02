@@ -1,6 +1,9 @@
 import datetime 
 from pydantic import BaseModel, Field
 
+class AuthRequest(BaseModel):
+    username: str
+    password: str
 
 class JWTClaims(BaseModel):
     user_id: int

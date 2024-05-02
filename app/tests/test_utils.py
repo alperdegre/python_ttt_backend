@@ -1,6 +1,7 @@
+import bcrypt
 import pytest
 from app.models import JWTClaims
-from app.utils import create_jwt, decode_jwt
+from app.utils import compare_password, create_jwt, decode_jwt, hash_password
 from unittest.mock import patch
 import jwt
 
@@ -29,3 +30,24 @@ def test_decode_jwt_errors(exception, expected_message):
         decoded, error = decode_jwt(invalid_token)
         assert decoded is None
         assert error == expected_message
+
+def test_hash_and_compare_password():
+    test_pw = 'test_pw'
+
+    hashed = hash_password(test_pw)
+
+    assert isinstance(hashed, bytes)
+    
+    result = compare_password(hashed.decode('utf-8'), test_pw)
+
+    assert result is True
+
+def test_wrong_password_compare():
+    test_pw = 'test_pw'
+    wrong_pw = 'wrong_pw'
+
+    hashed_wrong = hash_password(wrong_pw).decode('utf-8')
+
+    result = compare_password(hashed_wrong, test_pw)
+
+    assert result is False

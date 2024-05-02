@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from app.db.db import Base, get_db
-from .main import app
+from ..main import app
 
 DATABASE_URL = "sqlite:///"
 engine = create_engine(

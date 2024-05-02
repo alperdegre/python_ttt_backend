@@ -1,6 +1,6 @@
 import jwt
 import os
-
+import bcrypt
 from app.models import JWTClaims
 
 
@@ -24,3 +24,17 @@ def decode_jwt(token: str):
     except Exception as e:
         print(f"An unexpected error occurred: {str(e)}")
         return None, "An unexpected error has occured"
+    
+def hash_password(password:str):
+    encoded = password.encode('utf-8')
+    salt = bcrypt.gensalt(12)
+    hashed = bcrypt.hashpw(encoded, salt)
+
+    return hashed
+
+def compare_password(hashed:str, normal:str) -> bool:
+    hash_encoded = hashed.encode('utf-8')
+    normal_encoded = normal.encode('utf-8')
+    result = bcrypt.checkpw(normal_encoded, hash_encoded)
+
+    return result
