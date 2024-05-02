@@ -5,6 +5,11 @@ class AuthRequest(BaseModel):
     username: str
     password: str
 
+class AuthResponse(BaseModel):
+    token: str
+    user_id: int
+    expiry: int
+
 class JWTClaims(BaseModel):
     user_id: int
     username: str
