@@ -1,7 +1,7 @@
 
 
 
-from app.engine.events import CreateLobbyEvent, EventTypeEnum, JoinLobbyEvent, LobbyFullEvent, LobbyNotFoundEvent, LobbyUser, StateSyncEvent
+from app.engine.events import CreateLobbyEvent, EventTypeEnum, InvalidEvent, JoinLobbyEvent, LobbyFullEvent, LobbyNotFoundEvent, LobbyUser, StateSyncEvent, parse_event
 
 
 def test_create_lobby():
@@ -53,6 +53,15 @@ def test_lobby_full():
     assert serialized['type'] == EventTypeEnum.LOBBY_FULL
     assert serialized['data']['error'] == "Lobby Full"
 
+def test_invalid_event():
+    event = InvalidEvent()
+    assert event.type == EventTypeEnum.INVALID_EVENT
+    assert event.data.error == "Invalid Event"
+
+    serialized = event.serialize_event()
+
+    assert serialized['type'] == EventTypeEnum.INVALID_EVENT
+    assert serialized['data']['error'] == "Invalid Event"
 
 def test_join_lobby():
     event = JoinLobbyEvent(data={"player_id":"test_id"})
@@ -63,3 +72,19 @@ def test_join_lobby():
 
     assert serialized['type'] == EventTypeEnum.JOIN_LOBBY
     assert serialized['data']['player_id'] == "test_id"
+
+def test_parse_event_success():
+    event = LobbyFullEvent()
+
+    parsed_event = parse_event(event.__dict__, LobbyFullEvent)
+
+    assert parsed_event.type == EventTypeEnum.LOBBY_FULL
+    assert parsed_event.data.error == "Lobby Full"
+
+def test_parse_event_failure():
+    event = LobbyFullEvent()
+
+    parsed_event = parse_event(event.__dict__, JoinLobbyEvent)
+
+    assert parsed_event.type == EventTypeEnum.INVALID_EVENT
+    assert parsed_event.data.error == "Invalid Event"
