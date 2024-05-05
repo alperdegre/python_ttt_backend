@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth
+from app.engine.engine import GameEngine
+from app.routers import auth, game
 
 app = FastAPI()
 
-origins = ["*"]
+origins = ['*']
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,7 +17,22 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(game.router)
 
 @app.get("/hello-world")
 async def root():
     return {"message":"Hello World"}
+
+@app.get("/")
+async def route():
+    engine = GameEngine()
+
+    print(engine.lobbies)
+
+    lobby, code = engine.create_lobby("test")
+
+    print(engine.lobbies[code].users)
+
+    lobby.join("test2")
+
+    print(engine.lobbies[code].users)
