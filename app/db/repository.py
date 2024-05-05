@@ -1,7 +1,5 @@
-import datetime 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from types import SimpleNamespace
 
 from app.db.db import User
 
