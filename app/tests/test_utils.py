@@ -1,7 +1,6 @@
-import bcrypt
 import pytest
 from app.models import JWTClaims
-from app.utils import compare_password, create_jwt, decode_jwt, hash_password
+from app.utils import compare_password, create_jwt, create_lobby_code, decode_jwt, hash_password
 from unittest.mock import patch
 import jwt
 
@@ -51,3 +50,9 @@ def test_wrong_password_compare():
     result = compare_password(hashed_wrong, test_pw)
 
     assert result is False
+
+def test_create_lobby_code():
+    code = create_lobby_code()
+
+    assert code.isupper()
+    assert len(code) == 5

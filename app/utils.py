@@ -2,7 +2,7 @@ import jwt
 import os
 import bcrypt
 from app.models import JWTClaims
-
+from Crypto.Hash import SHA256
 
 def create_jwt(data: JWTClaims):
     encoded = jwt.encode(data.model_dump(), os.getenv("JWT_SECRET", ""), algorithm="HS256")
@@ -38,3 +38,12 @@ def compare_password(hashed:str, normal:str) -> bool:
     result = bcrypt.checkpw(normal_encoded, hash_encoded)
 
     return result
+
+def create_lobby_code():
+    random_bytes = os.urandom(32)
+    hash_object = SHA256.new(data=random_bytes)
+    random_hash = hash_object.hexdigest()
+    lobby_code = random_hash[:5].upper()
+
+    return lobby_code
+
