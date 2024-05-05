@@ -1,4 +1,4 @@
-from typing import Any, List, Literal, Type, TypeVar, Union
+from typing import Any, List, Literal, Tuple, Type, TypeVar, Union
 from pydantic import BaseModel, Field, ValidationError
 from enum import Enum
 
@@ -63,9 +63,14 @@ class InvalidEvent(Event):
 
 T = TypeVar('T', bound=Event)
 
-def parse_event(data:Any, event_type: Type[T]) -> Union[T, InvalidEvent]:
+"""
+Tries to parse the event with provided type.
+Returns a tuple where first element is the either provided event or InvalidEvent,
+Second element is a boolean indicating if there is an error or not, similar to Go functions
+"""
+def parse_event(data:Any, event_type: Type[T]) -> Tuple[Union[T, InvalidEvent], bool]:
     try:
         event = event_type(**data)
-        return event
+        return (event, False)
     except ValidationError as e:
-        return InvalidEvent()
+        return (InvalidEvent(), True)

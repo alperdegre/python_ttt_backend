@@ -1,3 +1,4 @@
+from typing import Dict
 from fastapi import WebSocket
 
 class Lobby():

@@ -76,15 +76,17 @@ def test_join_lobby():
 def test_parse_event_success():
     event = LobbyFullEvent()
 
-    parsed_event = parse_event(event.__dict__, LobbyFullEvent)
+    parsed_event, error = parse_event(event.__dict__, LobbyFullEvent)
 
     assert parsed_event.type == EventTypeEnum.LOBBY_FULL
     assert parsed_event.data.error == "Lobby Full"
+    assert error == False
 
 def test_parse_event_failure():
     event = LobbyFullEvent()
 
-    parsed_event = parse_event(event.__dict__, JoinLobbyEvent)
+    parsed_event, error = parse_event(event.__dict__, JoinLobbyEvent)
 
     assert parsed_event.type == EventTypeEnum.INVALID_EVENT
     assert parsed_event.data.error == "Invalid Event"
+    assert error == True
