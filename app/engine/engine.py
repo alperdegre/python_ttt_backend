@@ -1,8 +1,8 @@
 
-from typing import Dict
+from typing import Dict, Optional
+from app.engine.game import Game
 from app.engine.lobby import Lobby
-from app.utils import create_lobby_code
-from fastapi import WebSocket
+from app.utils import create_game_code, create_lobby_code
 
 
 """
@@ -26,8 +26,8 @@ Game features
 
 class GameEngine():
     def __init__(self):
-        self.sockets = {}
-        self.lobbies = {}
+        self.games: Dict[str, Game] = {}
+        self.lobbies: Dict[str, Lobby] = {}
 
     def create_lobby(self, owner:str):
         code = self.get_unique_lobby_code()
@@ -35,38 +35,43 @@ class GameEngine():
         self.lobbies[code] = new_lobby
         return code
     
-    def get_lobby(self, lobby_code:str):
+    def get_lobby(self, lobby_code:str) -> Optional[Lobby]:
         if lobby_code in self.lobbies:
             return self.lobbies[lobby_code]
         else:
             return None
 
+    def close_lobby(self, lobby_code:str):
+        if lobby_code in self.lobbies:
+            del self.lobbies[lobby_code]
+        else:
+            return None
+    
     def get_unique_lobby_code(self):
         code = create_lobby_code()
         while code in self.lobbies:
             code = create_lobby_code()
         return code
     
-    def start_lobby(self, lobby_id:str):
-        lobby = self.lobbies[lobby_id]
-
+    def get_unique_game_code(self):
+        code = create_game_code()
+        while code in self.games:
+            code = create_game_code()
+        return code
+    
+    def start_lobby(self, lobby_code:str):
+        lobby = self.get_lobby(lobby_code)
+        
         if lobby is None:
             return
+        elif len(lobby.users) != 2:
+            return
         
-        sockets = []
+        game_code = self.get_unique_game_code()
+        game = Game(websockets=lobby.websockets, users=lobby.users)
 
-        for user in lobby.users:
-            found_socket = self.sockets.find(user)
-
-            if found_socket is None:
-                break
-
-            sockets.append(found_socket)
-        
-        self.games[lobby_id] = Game(sockets)
-
-
-
+        self.games[game_code] = game
+        return game_code
 
      
 game_engine = GameEngine()

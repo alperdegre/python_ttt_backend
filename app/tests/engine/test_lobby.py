@@ -5,16 +5,6 @@ from app.engine.events import LobbyStartingEvent, StateSyncEvent
 from app.engine.lobby import Lobby
 from app.models import LobbyUser
 
-@pytest.fixture
-def lobby_user():
-    return LobbyUser(id="test_user", username="Test_User")
-
-@pytest.fixture
-def mock_websocket():
-    ws = AsyncMock()
-    ws.send_json = AsyncMock()
-    return ws
-
 @pytest.mark.anyio
 async def test_lobby_join_success(lobby_user, mock_websocket):
     lobby = Lobby(owner="test_owner", code="1234")
