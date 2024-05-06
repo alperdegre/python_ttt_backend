@@ -1,6 +1,6 @@
 import pytest
 from app.models import JWTClaims
-from app.utils import compare_password, create_jwt, create_lobby_code, decode_jwt, hash_password
+from app.utils import compare_password, create_game_code, create_jwt, create_lobby_code, decode_jwt, hash_password
 from unittest.mock import patch
 import jwt
 
@@ -56,3 +56,9 @@ def test_create_lobby_code():
 
     assert code.isupper()
     assert len(code) == 5
+
+def test_create_game_code():
+    code = create_game_code()
+
+    assert len(code) == 10
+    assert isinstance(code, str)

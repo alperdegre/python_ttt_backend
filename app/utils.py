@@ -47,3 +47,10 @@ def create_lobby_code():
 
     return lobby_code
 
+def create_game_code():
+    random_bytes = os.urandom(32)
+    hash_object = SHA256.new(data=random_bytes)
+    random_hash = hash_object.hexdigest()
+    game_code = random_hash[:10]
+
+    return game_code
