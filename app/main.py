@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.engine.engine import GameEngine
-from app.routers import auth, game
+from app.routers import auth, lobby
 
 app = FastAPI()
 
@@ -17,7 +17,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
-app.include_router(game.router)
+app.include_router(lobby.router)
 
 @app.get("/hello-world")
 async def root():
