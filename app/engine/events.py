@@ -1,6 +1,8 @@
-from typing import Any, List, Literal, Tuple, Type, TypeVar, Union
-from pydantic import BaseModel, Field, ValidationError
+from typing import Dict, List, Optional, Type
+from pydantic import BaseModel, ValidationError
 from enum import Enum
+
+from app.models import LobbyUser
 
 class EventTypeEnum(str, Enum):
     CREATE_LOBBY = 'CREATE_LOBBY'
@@ -9,10 +11,9 @@ class EventTypeEnum(str, Enum):
     LOBBY_NOT_FOUND = 'LOBBY_NOT_FOUND'
     LOBBY_FULL = 'LOBBY_FULL'
     INVALID_EVENT = 'INVALID_EVENT'
+    LOBBY_STARTING = 'LOBBY_STARTING'
+    START_LOBBY = 'START_LOBBY'
 
-class LobbyUser(BaseModel):
-    id: str
-    username: str
 
 class Event(BaseModel):
     type: EventTypeEnum
@@ -21,10 +22,16 @@ class Event(BaseModel):
 class CreateLobbyData(BaseModel):
     code: str
 
-class JoinLobbyData(BaseModel):
-    player_id: str
+class LobbyStartingData(BaseModel):
+    code: str
+    starting: bool
+
+class StartLobbyData(BaseModel):
+    user_id: str
 
 class StateSyncData(BaseModel):
+    owner: str
+    code: str
     users: List[LobbyUser]
 
 class ErrorData(BaseModel):
@@ -55,22 +62,44 @@ class LobbyFullEvent(Event):
 
 class JoinLobbyEvent(Event):
     type: EventTypeEnum = EventTypeEnum.JOIN_LOBBY
-    data: JoinLobbyData
+    data: LobbyUser
+
+class LobbyStartingEvent(Event):
+    type: EventTypeEnum = EventTypeEnum.LOBBY_STARTING
+    data: LobbyStartingData
+
+class StartLobbyEvent(Event):
+    type: EventTypeEnum = EventTypeEnum.START_LOBBY
+    data: StartLobbyData
 
 class InvalidEvent(Event):
     type: EventTypeEnum = EventTypeEnum.INVALID_EVENT
     data: ErrorData = ErrorData(error="Invalid Event")
 
-T = TypeVar('T', bound=Event)
+
+event_type_to_class: Dict[EventTypeEnum, Type[Event]] = {
+    EventTypeEnum.CREATE_LOBBY: CreateLobbyEvent,
+    EventTypeEnum.JOIN_LOBBY: JoinLobbyEvent,
+    EventTypeEnum.STATE_SYNC: StateSyncEvent,
+    EventTypeEnum.LOBBY_NOT_FOUND: LobbyNotFoundEvent,
+    EventTypeEnum.LOBBY_FULL: LobbyFullEvent,
+    EventTypeEnum.INVALID_EVENT: InvalidEvent,
+    EventTypeEnum.LOBBY_STARTING: LobbyStartingEvent,
+    EventTypeEnum.START_LOBBY: StartLobbyEvent
+}
 
 """
 Tries to parse the event with provided type.
-Returns a tuple where first element is the either provided event or InvalidEvent,
-Second element is a boolean indicating if there is an error or not, similar to Go functions
+Either returns the parsed object, or None to indicate an error
 """
-def parse_event(data:Any, event_type: Type[T]) -> Tuple[Union[T, InvalidEvent], bool]:
-    try:
-        event = event_type(**data)
-        return (event, False)
-    except ValidationError as e:
-        return (InvalidEvent(), True)
+def parse_event(data:dict) -> Optional[Event]:
+    event_type = data.get('type')
+    if event_type and event_type in event_type_to_class:
+        event_class = event_type_to_class[event_type]
+        try:
+            event = event_class(**data)
+            return event
+        except ValidationError:
+            return None
+    else:
+        return None
