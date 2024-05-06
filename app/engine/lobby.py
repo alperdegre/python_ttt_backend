@@ -1,38 +1,46 @@
 from typing import Dict
 from fastapi import WebSocket
 
+from app.engine.events import LobbyStartingEvent, StateSyncEvent
+from app.models import LobbyUser
+
+
 class Lobby():
     def __init__(self, owner:str, code:str) -> None:
         self.owner = owner
-        self.users: Dict[str, WebSocket] = {}
+        self.websockets: Dict[str, WebSocket] = {}
+        self.users: Dict[str, LobbyUser] = {}
         self.code = code
         self.turn = owner
+        self.starting = False
 
-    def join(self, user_id:str, websocket:WebSocket):
-        if len(self.users) < 2:
-            self.users[user_id] = websocket
+    async def join(self, user: LobbyUser, websocket:WebSocket):
+        if len(self.users) < 2 and self.starting == False:
+            self.websockets[user.id] = websocket
+            self.users[user.id] = user
+            await self.state_sync()
+            return True
         else:
-            return
+            return False
     
-    async def broadcast(self):
-        for user in self.users.values():
-            await user.send_json({'owner':self.owner, 'code':self.code})
+    async def state_sync(self):
+        state_sync_event = StateSyncEvent(data={"owner":self.owner,"code":self.code, "users":self.users.values()})
+        for ws in self.websockets.values():
+            await ws.send_json(state_sync_event.serialize_event())
 
-    async def bong(self, client_id):
-        if self.turn == client_id:
-            new_turn = self.turn
-            for user_id, user_ws in self.users.items():
-                await user_ws.send_json({'user':client_id})
-                if user_id != self.turn:
-                    new_turn = user_id
-            
-            self.turn = new_turn
-            for user_ws in self.users.values():
-                await user_ws.send_json({'turn':self.turn})
-                 
-    def start(self):
-        if len(self.users) == 2:
-            return self.users
+    async def leave(self, user: LobbyUser):
+        del self.websockets[user.id]
+        del self.users[user.id]
+        await self.state_sync()
+        return len(self.users)
+
+    async def start(self, code:str):
+        if len(self.users) < 2:
+            return False
         else:
-            return
+            self.starting = True
+            start_event = LobbyStartingEvent(data={'code':code, 'starting':True})
+            for ws in self.websockets.values():
+                await ws.send_json(start_event.serialize_event())
+            return True
    
