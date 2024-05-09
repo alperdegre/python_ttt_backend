@@ -1,10 +1,12 @@
 from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from app.db.db import Base, get_db
+from app.dependencies import get_user_id
 from app.engine.engine import GameEngine, get_engine
 from app.models import LobbyUser
 from ..main import app
@@ -34,6 +36,10 @@ def session():
         db.close()
 
 @pytest.fixture()
+def game_engine():
+    return test_game_engine
+
+@pytest.fixture()
 def client(session):
     """
     Creates a TestClient for route testing. Overrides db creation with a test database
@@ -44,21 +50,37 @@ def client(session):
         finally:
             session.close()
 
+    def override_get_engine():
+        return test_game_engine
+    
+    def override_get_user_id():
+        return "TEST_USER"
+    
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_engine] = override_get_engine
+    app.dependency_overrides[get_user_id] = override_get_user_id
     
     yield TestClient(app)
 
 @pytest.fixture()
-def game_engine():
-    """
-    Creates a test game engine
-    """
+def async_client(session):
+    def override_get_db():
+        try:
+            yield session
+        finally:
+            session.close()
+
     def override_get_engine():
         return test_game_engine
     
+    def override_get_user_id():
+        return "TEST_USER"
+
+    app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_engine] = override_get_engine
-    
-    yield test_game_engine
+    app.dependency_overrides[get_user_id] = override_get_user_id
+
+    yield AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 
 @pytest.fixture
 def lobby_user():
