@@ -16,6 +16,7 @@ def test_signup_success(client):
     assert 'token' in json_response
     assert 'user_id' in json_response
     assert 'expiry' in json_response
+    assert 'username' in json_response
 
 def test_signup_existing_user(client):
     username = "signup_success_user"
@@ -41,6 +42,7 @@ def test_login_success(client):
         assert 'token' in json_response
         assert 'user_id' in json_response
         assert 'expiry' in json_response
+        assert 'username' in json_response
 
 
 def test_login_user_does_not_exist(client):
