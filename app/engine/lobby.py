@@ -1,7 +1,7 @@
 from typing import Dict
 from fastapi import WebSocket
 
-from app.engine.events import LobbyStartingEvent, StateSyncEvent
+from app.engine.lobby_events import LobbyStartingEvent, StateSyncEvent
 from app.models import LobbyUser
 
 
