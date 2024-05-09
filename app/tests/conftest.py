@@ -42,7 +42,7 @@ def game_engine():
 @pytest.fixture()
 def client(session):
     """
-    Creates a TestClient for route testing. Overrides db creation with a test database
+    Creates a TestClient for route testing. Overrides every dependency to work with tests
     """
     def override_get_db():
         try:
@@ -60,6 +60,17 @@ def client(session):
     app.dependency_overrides[get_engine] = override_get_engine
     app.dependency_overrides[get_user_id] = override_get_user_id
     
+    yield TestClient(app)
+
+@pytest.fixture()
+def user_id_client(session):
+    """
+    Creates a TestClient for auth middleware testing.
+    """
+    def override_get_engine():
+        return test_game_engine
+    
+    app.dependency_overrides[get_engine] = override_get_engine
     yield TestClient(app)
 
 @pytest.fixture()
