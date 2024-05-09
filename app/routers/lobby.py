@@ -4,31 +4,25 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
 from app.dependencies import get_user_id
 from app.engine.engine import GameEngine, get_engine
-from app.engine.events import CreateLobbyEvent, EventTypeEnum, InvalidEvent, JoinLobbyEvent, LobbyFullEvent, parse_event
+from app.engine.lobby_events import CreateLobbyEvent, EventTypeEnum, InvalidEvent, JoinLobbyEvent, LobbyFullEvent, parse_lobby_event
 from app.models import LobbyUser
 
 router = APIRouter(
     prefix="/lobby",
 )
 
-
-# async def create_lobby(user_id: int = Depends(get_user_id), engine:GameEngine = Depends(get_engine)):
-@router.post("/create-lobby/{user_id}")
-async def create_lobby(user_id: str, engine:GameEngine = Depends(get_engine)):
+@router.post("/create-lobby")
+async def create_lobby(engine:GameEngine = Depends(get_engine), user_id: int = Depends(get_user_id)):
     code = engine.create_lobby(user_id)
 
     return CreateLobbyEvent(data={"code":code}).serialize_event()
 
-@router.get("/get-lobby")
-async def get_test(lobby_id:str, engine:GameEngine = Depends(get_engine)):
-    lobby = engine.get_lobby(lobby_id)
-
-    if lobby is "not_found":
-        return {"error":"Not found"}
+@router.get("/get-lobbies")
+async def get_lobbies(engine:GameEngine = Depends(get_engine), _: int = Depends(get_user_id)):
+    lobbies = engine.get_lobbies()
     
-    return {"owner":lobby.owner, "users":lobby.users, "code":lobby.code}
+    return {"lobbies":lobbies}
 
-# async def join_lobby(user_id: int = Depends(get_user_id)):
 @router.websocket("/join-lobby/{lobby_code}")
 async def join_lobby(websocket: WebSocket, lobby_code:str, engine:GameEngine = Depends(get_engine)):
     await websocket.accept()
@@ -36,12 +30,12 @@ async def join_lobby(websocket: WebSocket, lobby_code:str, engine:GameEngine = D
     # Check user's initial join event
     try:
         init_request = await websocket.receive_json()
-    except WebSocketDisconnect or JSONDecodeError:
+    except JSONDecodeError:
         await websocket.close()
         return
 
     # Parse the event
-    join_event = parse_event(init_request)
+    join_event = parse_lobby_event(init_request)
     if join_event is None or join_event.__class__ is not JoinLobbyEvent:
         await websocket.send_json(InvalidEvent().serialize_event())
         await websocket.close()
@@ -68,17 +62,19 @@ async def join_lobby(websocket: WebSocket, lobby_code:str, engine:GameEngine = D
         while True:
             # Receive and parse events
             data = await websocket.receive_json()
-            event = parse_event(data)
+            event = parse_lobby_event(data)
 
             # Invalid event state
             if event is None:
                 await websocket.send_json(InvalidEvent().serialize_event())
+                return
 
             # Start lobby event, start a game and broadcast the game_code to redirect users
             if event.type == EventTypeEnum.START_LOBBY and lobby_user.id == lobby.owner:
-                game_code = await engine.start_lobby(lobby_code)
+                game_code = engine.start_lobby(lobby_code)
                 if game_code is None:
                     await websocket.send_json(InvalidEvent().serialize_event())
+                    return
                 else:
                     await lobby.start(code=game_code)
 
