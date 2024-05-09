@@ -1,4 +1,5 @@
-import datetime 
+import datetime
+from typing import List 
 from pydantic import BaseModel, Field
 
 class AuthRequest(BaseModel):
@@ -9,6 +10,7 @@ class AuthResponse(BaseModel):
     token: str
     user_id: int
     expiry: int
+    username: str
 
 class JWTClaims(BaseModel):
     user_id: int
@@ -18,3 +20,8 @@ class JWTClaims(BaseModel):
 class LobbyUser(BaseModel):
     id: str
     username: str
+
+class ListedLobby(BaseModel):
+    code: str
+    owner: str
+    players: List[LobbyUser]

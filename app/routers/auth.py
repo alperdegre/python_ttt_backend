@@ -34,7 +34,7 @@ async def signup(req: AuthRequest, db:Session = Depends(get_db)):
 
     expiry = jwt_claims.model_dump()['exp']
 
-    response = AuthResponse(token=jwt, user_id=user['id'], expiry=expiry)
+    response = AuthResponse(token=jwt, user_id=user['id'], username=username, expiry=expiry)
 
     return response
 
@@ -61,6 +61,6 @@ async def login(req: AuthRequest, db:Session = Depends(get_db)):
 
     expiry = jwt_claims.model_dump()['exp']
 
-    response = AuthResponse(token=jwt, user_id=existing_user['id'], expiry=expiry)
+    response = AuthResponse(token=jwt, user_id=existing_user['id'], username=username, expiry=expiry)
 
     return response
