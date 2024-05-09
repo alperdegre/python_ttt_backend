@@ -24,7 +24,7 @@ async def get_lobbies(engine:GameEngine = Depends(get_engine), _: int = Depends(
     return {"lobbies":lobbies}
 
 @router.websocket("/join-lobby/{lobby_code}")
-async def join_lobby(websocket: WebSocket, lobby_code:str, engine:GameEngine = Depends(get_engine), _: int = Depends(get_user_id)):
+async def join_lobby(websocket: WebSocket, lobby_code:str, engine:GameEngine = Depends(get_engine)):
     await websocket.accept()
 
     # Check user's initial join event
