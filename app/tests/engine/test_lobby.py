@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, patch
 import pytest
 
-from app.engine.events import LobbyStartingEvent, StateSyncEvent
+from app.engine.lobby_events import LobbyStartingEvent, StateSyncEvent
 from app.engine.lobby import Lobby
 from app.models import LobbyUser
 
@@ -27,7 +27,7 @@ async def test_lobby_join_lobby_full(lobby_user, mock_websocket):
     assert len(lobby.users.keys()) == 2
 
 @pytest.mark.anyio
-async def test_lobby_join_wrong_data(lobby_user, mock_websocket):
+async def test_lobby_join_wrong_data(mock_websocket):
     lobby = Lobby(owner="test_owner", code="1234")
     try:
         await lobby.join({'test'}, mock_websocket)
