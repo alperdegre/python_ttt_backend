@@ -1,0 +1,39 @@
+name: Deploy TTT Backend
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to DigitalOcean Droplet
+        env:
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+        run: |
+          scp -o StrictHostKeyChecking=no -r $(pwd) root@$DROPLET_IP:/project/backend/
+          ssh -o StrictHostKeyChecking=no root@$DROPLET_IP 'cd /project/backend && source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt && systemctl restart fastapi'
