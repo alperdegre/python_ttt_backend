@@ -46,5 +46,5 @@ jobs:
         env:
           DROPLET_IP: ${{ secrets.DROPLET_IP }}
         run: |
-          scp -o StrictHostKeyChecking=no -r $(pwd) root@$DROPLET_IP:/project/backend/
+          scp -o StrictHostKeyChecking=no -r * root@$DROPLET_IP:/project/backend/
           ssh -o StrictHostKeyChecking=no root@$DROPLET_IP 'cd /project/backend && source venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt && systemctl restart fastapi'
