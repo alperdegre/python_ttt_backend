@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.engine.engine import GameEngine
 from app.routers import auth, game, lobby
 
 app = FastAPI()
