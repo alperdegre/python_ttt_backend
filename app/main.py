@@ -6,7 +6,7 @@ from app.routers import auth, game, lobby
 
 app = FastAPI()
 
-origins = ['*']
+origins = ['https://tictactoe.alperdegre.com','https://ttt.alperdegre.com']
 
 app.add_middleware(
     CORSMiddleware,
