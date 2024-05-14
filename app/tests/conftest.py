@@ -9,7 +9,7 @@ from app.db.db import Base, get_db
 from app.dependencies import get_user_id
 from app.engine.engine import GameEngine, get_engine
 from app.models import LobbyUser
-from ..main import app
+from app.main import app
 
 DATABASE_URL = "sqlite:///"
 engine = create_engine(
