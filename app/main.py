@@ -19,21 +19,3 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(lobby.router)
 app.include_router(game.router)
-
-@app.get("/hello-world")
-async def root():
-    return {"message":"Hello World"}
-
-@app.get("/")
-async def route():
-    engine = GameEngine()
-
-    print(engine.lobbies)
-
-    lobby, code = engine.create_lobby("test")
-
-    print(engine.lobbies[code].users)
-
-    lobby.join("test2")
-
-    print(engine.lobbies[code].users)

@@ -64,3 +64,7 @@ async def login(req: AuthRequest, db:Session = Depends(get_db)):
     response = AuthResponse(token=jwt, user_id=existing_user['id'], username=username, expiry=expiry)
 
     return response
+
+@app.get("/hello-world")
+async def root():
+    return {"message":"Hello World"}
